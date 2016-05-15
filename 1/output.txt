@@ -1,0 +1,209 @@
+(8124, 126)
+(8124, 2)
+
+-------------------------------------------------------------------------------
+BEFORE FIRST EPOCH
+-------------------------------------------------------------------------------
+Training status:
+	 batch_interrupt_received: False
+	 epoch_interrupt_received: False
+	 epoch_started: True
+	 epochs_done: 0
+	 iterations_done: 0
+	 received_first_batch: False
+	 resumed_from: None
+	 training_started: True
+Log records from the iteration 0:
+	 test_cost: 0.69393518056
+	 test_missclassification: 0.555284552846
+
+
+-------------------------------------------------------------------------------
+AFTER ANOTHER EPOCH
+-------------------------------------------------------------------------------
+Training status:
+	 batch_interrupt_received: False
+	 epoch_interrupt_received: False
+	 epoch_started: False
+	 epochs_done: 1
+	 iterations_done: 732
+	 received_first_batch: True
+	 resumed_from: None
+	 training_started: True
+Log records from the iteration 732:
+	 test_cost: 0.832205314866
+	 test_missclassification: 0.444715447154
+
+
+-------------------------------------------------------------------------------
+AFTER ANOTHER EPOCH
+-------------------------------------------------------------------------------
+Training status:
+	 batch_interrupt_received: False
+	 epoch_interrupt_received: False
+	 epoch_started: False
+	 epochs_done: 2
+	 iterations_done: 1464
+	 received_first_batch: True
+	 resumed_from: None
+	 training_started: True
+Log records from the iteration 1464:
+	 test_cost: 0.601194402406
+	 test_missclassification: 0.444715447154
+
+
+-------------------------------------------------------------------------------
+AFTER ANOTHER EPOCH
+-------------------------------------------------------------------------------
+Training status:
+	 batch_interrupt_received: False
+	 epoch_interrupt_received: False
+	 epoch_started: False
+	 epochs_done: 3
+	 iterations_done: 2196
+	 received_first_batch: True
+	 resumed_from: None
+	 training_started: True
+Log records from the iteration 2196:
+	 test_cost: 0.279493868759
+	 test_missclassification: 0.0146341463415
+
+
+-------------------------------------------------------------------------------
+AFTER ANOTHER EPOCH
+-------------------------------------------------------------------------------
+Training status:
+	 batch_interrupt_received: False
+	 epoch_interrupt_received: False
+	 epoch_started: False
+	 epochs_done: 4
+	 iterations_done: 2928
+	 received_first_batch: True
+	 resumed_from: None
+	 training_started: True
+Log records from the iteration 2928:
+	 test_cost: 0.22167398833
+	 test_missclassification: 0.0109756097561
+
+
+-------------------------------------------------------------------------------
+AFTER ANOTHER EPOCH
+-------------------------------------------------------------------------------
+Training status:
+	 batch_interrupt_received: False
+	 epoch_interrupt_received: False
+	 epoch_started: False
+	 epochs_done: 5
+	 iterations_done: 3660
+	 received_first_batch: True
+	 resumed_from: None
+	 training_started: True
+Log records from the iteration 3660:
+	 test_cost: 0.202153983711
+	 test_missclassification: 0.00731707317073
+
+
+-------------------------------------------------------------------------------
+AFTER ANOTHER EPOCH
+-------------------------------------------------------------------------------
+Training status:
+	 batch_interrupt_received: False
+	 epoch_interrupt_received: False
+	 epoch_started: False
+	 epochs_done: 6
+	 iterations_done: 4392
+	 received_first_batch: True
+	 resumed_from: None
+	 training_started: True
+Log records from the iteration 4392:
+	 test_cost: 0.191680729277
+	 test_missclassification: 0.00731707317073
+
+
+-------------------------------------------------------------------------------
+AFTER ANOTHER EPOCH
+-------------------------------------------------------------------------------
+Training status:
+	 batch_interrupt_received: False
+	 epoch_interrupt_received: False
+	 epoch_started: False
+	 epochs_done: 7
+	 iterations_done: 5124
+	 received_first_batch: True
+	 resumed_from: None
+	 training_started: True
+Log records from the iteration 5124:
+	 test_cost: 0.185071056191
+	 test_missclassification: 0.00731707317073
+
+
+-------------------------------------------------------------------------------
+AFTER ANOTHER EPOCH
+-------------------------------------------------------------------------------
+Training status:
+	 batch_interrupt_received: False
+	 epoch_interrupt_received: False
+	 epoch_started: False
+	 epochs_done: 8
+	 iterations_done: 5856
+	 received_first_batch: True
+	 resumed_from: None
+	 training_started: True
+Log records from the iteration 5856:
+	 test_cost: 0.180571681968
+	 test_missclassification: 0.00731707317073
+
+
+-------------------------------------------------------------------------------
+AFTER ANOTHER EPOCH
+-------------------------------------------------------------------------------
+Training status:
+	 batch_interrupt_received: False
+	 epoch_interrupt_received: False
+	 epoch_started: False
+	 epochs_done: 9
+	 iterations_done: 6588
+	 received_first_batch: True
+	 resumed_from: None
+	 training_started: True
+Log records from the iteration 6588:
+	 test_cost: 0.177356267158
+	 test_missclassification: 0.00731707317073
+
+
+-------------------------------------------------------------------------------
+AFTER ANOTHER EPOCH
+-------------------------------------------------------------------------------
+Training status:
+	 batch_interrupt_received: False
+	 epoch_interrupt_received: False
+	 epoch_started: False
+	 epochs_done: 10
+	 iterations_done: 7320
+	 received_first_batch: True
+	 resumed_from: None
+	 training_started: True
+Log records from the iteration 7320:
+	 test_cost: 0.174975713485
+	 test_missclassification: 0.00731707317073
+	 training_finish_requested: True
+
+
+-------------------------------------------------------------------------------
+TRAINING HAS BEEN FINISHED:
+-------------------------------------------------------------------------------
+Training status:
+	 batch_interrupt_received: False
+	 epoch_interrupt_received: False
+	 epoch_started: False
+	 epochs_done: 10
+	 iterations_done: 7320
+	 received_first_batch: True
+	 resumed_from: None
+	 training_started: True
+Log records from the iteration 7320:
+	 test_cost: 0.174975713485
+	 test_missclassification: 0.00731707317073
+	 training_finish_requested: True
+	 training_finished: True
+
