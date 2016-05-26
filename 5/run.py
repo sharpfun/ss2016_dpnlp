@@ -16,17 +16,7 @@ import numbers
 
 class CocoDataset(H5PYDataset):
     def get_data(self, state=None, request=None):
-        if self.load_in_memory:
-            data, shapes = self._in_memory_get_data(state, request)
-        else:
-            data, shapes = self._out_of_memory_get_data(state, request)
-        for i in range(len(data)):
-            if shapes[i] is not None:
-                if isinstance(request, numbers.Integral):
-                    data[i] = data[i].reshape(shapes[i])
-                else:
-                    for j in range(len(data[i])):
-                        data[i][j] = data[i][j].reshape(shapes[i][j])
+        data = list(super(CocoDataset, self).get_data(state, request))
         data[1] = data[1].T
         return tuple(data)
 
