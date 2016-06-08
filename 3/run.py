@@ -1,3 +1,7 @@
+import os
+os.environ["THEANO_FLAGS"] = "mode=FAST_RUN,device=gpu0,floatX=float32"
+#os.environ["THEANO_FLAGS"] = "mode=FAST_RUN,device=cpu,floatX=float32"
+
 import numpy
 import pandas
 from theano import tensor
@@ -10,7 +14,7 @@ from blocks.bricks import Linear, Softmax, NDimensionalSoftmax
 
 
 with open('dataset/shakespeare_input.txt') as f:
-    CORPUS = "".join(f.readlines())[:200000]
+    CORPUS = "".join(f.readlines())[:20000]
 
 
 (indices, indexed_letters) = pandas.factorize(list(CORPUS))
@@ -20,7 +24,7 @@ print indexed_letters
 seqlength = 1000
 instances_num = len(CORPUS)/seqlength
 dimension = len(indexed_letters)
-repeat = 10
+repeat = 30
 
 
 train_data_x = numpy.zeros((seqlength*repeat, instances_num), dtype=numpy.int64)
@@ -39,7 +43,7 @@ from collections import OrderedDict
 
 train_dataset = IndexableDataset(OrderedDict([('x', train_data_x), ('y', train_data_y)]))
 
-hidden_layer_dim = 500
+hidden_layer_dim = 1000
 
 x = tensor.lmatrix('x')
 y = tensor.lmatrix('y')
@@ -52,26 +56,12 @@ lookup_input = LookupTable(
     biases_init=Constant(0))
 lookup_input.initialize()
 
-rnn1 = SimpleRecurrent(
-    name='hidden1',
+rnn = SimpleRecurrent(
+    name='hidden',
     dim=hidden_layer_dim,
     activation=Tanh(),
     weights_init=initialization.IsotropicGaussian(0.01))
-rnn1.initialize()
-
-rnn2 = SimpleRecurrent(
-    name='hidden2',
-    dim=hidden_layer_dim,
-    activation=Tanh(),
-    weights_init=initialization.IsotropicGaussian(0.01))
-rnn2.initialize()
-
-rnn3 = SimpleRecurrent(
-    name='hidden3',
-    dim=hidden_layer_dim,
-    activation=Tanh(),
-    weights_init=initialization.IsotropicGaussian(0.01))
-rnn3.initialize()
+rnn.initialize()
 
 linear_output = Linear(
     name='linear_output',
@@ -84,10 +74,8 @@ linear_output.initialize()
 softmax = NDimensionalSoftmax(name='ndim_softmax')
 
 activation_input = lookup_input.apply(x)
-hidden1 = rnn1.apply(activation_input)
-hidden2 = rnn2.apply(hidden1)
-hidden3 = rnn3.apply(hidden2)
-activation_output = linear_output.apply(hidden3)
+hidden = rnn.apply(activation_input)
+activation_output = linear_output.apply(hidden)
 y_est = softmax.apply(activation_output, extra_ndim=1)
 
 cost = softmax.categorical_cross_entropy(y, activation_output, extra_ndim=1).mean()
@@ -116,7 +104,7 @@ from blocks.extensions.saveload import Checkpoint
 
 extensions = [
     Timing(),
-    FinishAfter(after_n_epochs=5000),
+    FinishAfter(after_n_epochs=200),
     TrainingDataMonitoring(
         variables=[cost],
         prefix="train",
@@ -134,7 +122,7 @@ main_loop = MainLoop(
     algorithm=algorithm,
     data_stream=DataStream.default_stream(
         dataset=train_dataset,
-        iteration_scheme=SequentialScheme(instances_num, batch_size=100)
+        iteration_scheme=SequentialScheme(instances_num, batch_size=500)
     ),
     model=Model(y_est),
     extensions=extensions
