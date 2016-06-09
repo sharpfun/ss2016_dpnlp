@@ -1,3 +1,6 @@
+import os
+os.environ["THEANO_FLAGS"] = "mode=FAST_RUN,device=gpu0,nvcc.flags=-D_FORCE_INLINES,floatX=float32"
+
 import numpy
 import pandas
 from theano import tensor
@@ -10,17 +13,17 @@ from blocks.bricks import Linear, Softmax, NDimensionalSoftmax
 
 
 with open('dataset/shakespeare_input.txt') as f:
-    CORPUS = "".join(f.readlines())[:200000]
+    CORPUS = "".join(f.readlines())[:100000]
 
 
 (indices, indexed_letters) = pandas.factorize(list(CORPUS))
 
 print indexed_letters
 
-seqlength = 1000
+seqlength = 500
 instances_num = len(CORPUS)/seqlength
 dimension = len(indexed_letters)
-repeat = 10
+repeat = 1
 
 
 train_data_x = numpy.zeros((seqlength*repeat, instances_num), dtype=numpy.int64)
@@ -39,7 +42,7 @@ from collections import OrderedDict
 
 train_dataset = IndexableDataset(OrderedDict([('x', train_data_x), ('y', train_data_y)]))
 
-hidden_layer_dim = 500
+hidden_layer_dim = 300
 
 x = tensor.lmatrix('x')
 y = tensor.lmatrix('y')
@@ -116,7 +119,7 @@ from blocks.extensions.saveload import Checkpoint
 
 extensions = [
     Timing(),
-    FinishAfter(after_n_epochs=5000),
+    FinishAfter(after_n_epochs=10000),
     TrainingDataMonitoring(
         variables=[cost],
         prefix="train",
@@ -134,7 +137,7 @@ main_loop = MainLoop(
     algorithm=algorithm,
     data_stream=DataStream.default_stream(
         dataset=train_dataset,
-        iteration_scheme=SequentialScheme(instances_num, batch_size=100)
+        iteration_scheme=SequentialScheme(instances_num, batch_size=200)
     ),
     model=Model(y_est),
     extensions=extensions
