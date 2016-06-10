@@ -12,19 +12,26 @@ from blocks.bricks.recurrent import SimpleRecurrent, RecurrentStack
 from blocks.bricks import Linear, Softmax, NDimensionalSoftmax
 
 
-with open('dataset/shakespeare_input.txt') as f:
-    CORPUS = "".join(f.readlines())[:100000]
+with open('dataset/Aird-v1.abc.txt') as f:
+    CORPUS = f.read()
 
 
 (indices, indexed_letters) = pandas.factorize(list(CORPUS))
 
 print indexed_letters
 
-seqlength = 500
-instances_num = len(CORPUS)/seqlength
-dimension = len(indexed_letters)
-repeat = 1
 
+sheets = [x for x in CORPUS.split("\n\n") if len(x)<600]
+sheets_length = [len(x) for x in sheets]
+sheets_length.sort(reverse=True)
+
+seqlength = sheets_length[0]
+instances_num = len(sheets)
+dimension = len(indexed_letters)
+repeat = 20
+
+sheets = [x.ljust(seqlength, '\n') for x in sheets]
+letter_to_id = dict((v, k) for k, v in dict(enumerate(indexed_letters)).items())
 
 train_data_x = numpy.zeros((seqlength*repeat, instances_num), dtype=numpy.int64)
 train_data_y = numpy.zeros((seqlength*repeat, instances_num), dtype=numpy.int64)
@@ -33,8 +40,8 @@ train_data_y = numpy.zeros((seqlength*repeat, instances_num), dtype=numpy.int64)
 for j in range(instances_num):
     for k in range(repeat):
         for i in range(seqlength-1):
-            train_data_x[i+k*seqlength][j] = indices[i+j*seqlength]
-            train_data_y[i+k*seqlength][j] = indices[i+j*seqlength+1]
+            train_data_x[i+k*seqlength][j] = letter_to_id[sheets[j][i]]
+            train_data_y[i+k*seqlength][j] = letter_to_id[sheets[j][i+1]]
 
 
 from fuel.datasets import IndexableDataset
@@ -51,7 +58,7 @@ lookup_input = LookupTable(
     name='lookup_input',
     length=dimension,
     dim=hidden_layer_dim,
-    weights_init=initialization.IsotropicGaussian(0.01),
+    weights_init=initialization.Uniform(width=0.01),
     biases_init=Constant(0))
 lookup_input.initialize()
 
@@ -62,7 +69,7 @@ rnn1 = SimpleRecurrent(
     weights_init=initialization.IsotropicGaussian(0.01))
 rnn1.initialize()
 
-rnn2 = SimpleRecurrent(
+"""rnn2 = SimpleRecurrent(
     name='hidden2',
     dim=hidden_layer_dim,
     activation=Tanh(),
@@ -74,7 +81,7 @@ rnn3 = SimpleRecurrent(
     dim=hidden_layer_dim,
     activation=Tanh(),
     weights_init=initialization.IsotropicGaussian(0.01))
-rnn3.initialize()
+rnn3.initialize()"""
 
 linear_output = Linear(
     name='linear_output',
@@ -88,9 +95,9 @@ softmax = NDimensionalSoftmax(name='ndim_softmax')
 
 activation_input = lookup_input.apply(x)
 hidden1 = rnn1.apply(activation_input)
-hidden2 = rnn2.apply(hidden1)
-hidden3 = rnn3.apply(hidden2)
-activation_output = linear_output.apply(hidden3)
+#hidden2 = rnn2.apply(hidden1)
+#hidden3 = rnn3.apply(hidden2)
+activation_output = linear_output.apply(hidden1)
 y_est = softmax.apply(activation_output, extra_ndim=1)
 
 cost = softmax.categorical_cross_entropy(y, activation_output, extra_ndim=1).mean()
@@ -137,7 +144,7 @@ main_loop = MainLoop(
     algorithm=algorithm,
     data_stream=DataStream.default_stream(
         dataset=train_dataset,
-        iteration_scheme=SequentialScheme(instances_num, batch_size=200)
+        iteration_scheme=SequentialScheme(instances_num, batch_size=50)
     ),
     model=Model(y_est),
     extensions=extensions
