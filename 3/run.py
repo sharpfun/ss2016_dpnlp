@@ -1,7 +1,5 @@
 import os
-os.environ["THEANO_FLAGS"] = "mode=FAST_RUN,device=gpu0,nvcc.flags=-D_FORCE_INLINES,floatX=float32"
-#os.environ["THEANO_FLAGS"] = "mode=FAST_RUN,device=cpu"
-
+os.environ["THEANO_FLAGS"] = "nvcc.flags=-D_FORCE_INLINES"
 
 from theano import tensor
 from blocks import initialization
@@ -85,20 +83,6 @@ from blocks.main_loop import MainLoop
 from blocks.extensions.saveload import Checkpoint
 
 
-extensions = [
-    Timing(),
-    FinishAfter(after_n_epochs=500),
-    TrainingDataMonitoring(
-        variables=[cost],
-        prefix="train",
-        after_epoch=True
-    ),
-    Printing(),
-    ProgressBar(),
-    Checkpoint(path="./checkpoint.zip", every_n_batches=100)
-]
-
-
 from blocks.model import Model
 
 main_loop = MainLoop(
@@ -108,7 +92,18 @@ main_loop = MainLoop(
         iteration_scheme=SequentialScheme(train_dataset.num_examples, batch_size=1000)
     ),
     model=Model(y_est),
-    extensions=extensions
+    extensions=[
+        Timing(),
+        FinishAfter(after_n_epochs=500),
+        TrainingDataMonitoring(
+            variables=[cost],
+            prefix="train",
+            after_epoch=True
+        ),
+        Printing(),
+        ProgressBar(),
+        Checkpoint(path="./checkpoint.zip")
+    ]
 )
 
 main_loop.run()

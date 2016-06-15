@@ -1,17 +1,20 @@
 import os
-os.environ["THEANO_FLAGS"] = "mode=FAST_RUN,device=gpu0,nvcc.flags=-D_FORCE_INLINES,floatX=float32"
+os.environ["THEANO_FLAGS"] = "nvcc.flags=-D_FORCE_INLINES"
 
 from blocks.extensions.saveload import load
 from theano import function
-import pandas
 import numpy
+import h5py
+import json
 
 
-with open('dataset/shakespeare_input.txt') as f:
-    CORPUS = "".join(f.readlines())[:20000]
+source_path = 'dataset/shakespeare.hdf5'
 
 
-(indices, indexed_letters) = pandas.factorize(list(CORPUS))
+with h5py.File(source_path) as f:
+    vocab = json.loads(f.attrs['index_to_char'])
+    vocab_size = len(vocab)
+    instances_num = f['x'].shape[0]
 
 
 main_loop = load('./checkpoint.zip')
@@ -37,8 +40,8 @@ numpy.random.seed(int(time.time()))
 for i in range(500):
     input_char = numpy.zeros((1, 1), dtype=numpy.int32)
     input_char[0][0] = predictions[i]
-    predictions.append(numpy.random.choice(len(indexed_letters), 1, p=predict_fun(input_char)[0])[0])
+    predictions.append(numpy.random.choice(vocab_size, 1, p=predict_fun(input_char)[0])[0])
 
 
 print "Predict:"
-print "".join([indexed_letters[x] for x in predictions])
+print "".join([vocab[x] for x in predictions])
