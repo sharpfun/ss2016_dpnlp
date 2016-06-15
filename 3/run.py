@@ -1,46 +1,30 @@
 import os
 os.environ["THEANO_FLAGS"] = "mode=FAST_RUN,device=gpu0,nvcc.flags=-D_FORCE_INLINES,floatX=float32"
+#os.environ["THEANO_FLAGS"] = "mode=FAST_RUN,device=cpu"
 
-import numpy
-import pandas
+
 from theano import tensor
 from blocks import initialization
 from blocks.initialization import Constant
 from blocks.bricks import Tanh
 from blocks.bricks.lookup import LookupTable
-from blocks.bricks.recurrent import SimpleRecurrent, RecurrentStack
+from blocks.bricks.recurrent import SimpleRecurrent, LSTM
 from blocks.bricks import Linear, Softmax, NDimensionalSoftmax
+from fuel.datasets.hdf5 import H5PYDataset
+import h5py
+import json
 
 
-with open('dataset/shakespeare_input.txt') as f:
-    CORPUS = "".join(f.readlines())[:100000]
+source_path = 'dataset/shakespeare.hdf5'
 
 
-(indices, indexed_letters) = pandas.factorize(list(CORPUS))
-
-print indexed_letters
-
-seqlength = 500
-instances_num = len(CORPUS)/seqlength
-dimension = len(indexed_letters)
-repeat = 1
+with h5py.File(source_path) as f:
+    vocab_size = len(json.loads(f.attrs['index_to_char']))
+    instances_num = f['x'].shape[0]
 
 
-train_data_x = numpy.zeros((seqlength*repeat, instances_num), dtype=numpy.int64)
-train_data_y = numpy.zeros((seqlength*repeat, instances_num), dtype=numpy.int64)
+train_dataset = H5PYDataset(source_path, which_sets=('train',))
 
-
-for j in range(instances_num):
-    for k in range(repeat):
-        for i in range(seqlength-1):
-            train_data_x[i+k*seqlength][j] = indices[i+j*seqlength]
-            train_data_y[i+k*seqlength][j] = indices[i+j*seqlength+1]
-
-
-from fuel.datasets import IndexableDataset
-from collections import OrderedDict
-
-train_dataset = IndexableDataset(OrderedDict([('x', train_data_x), ('y', train_data_y)]))
 
 hidden_layer_dim = 300
 
@@ -49,48 +33,32 @@ y = tensor.lmatrix('y')
 
 lookup_input = LookupTable(
     name='lookup_input',
-    length=dimension,
+    length=vocab_size,
     dim=hidden_layer_dim,
-    weights_init=initialization.IsotropicGaussian(0.01),
+    weights_init=initialization.Uniform(width=0.01),
     biases_init=Constant(0))
 lookup_input.initialize()
 
-rnn1 = SimpleRecurrent(
-    name='hidden1',
+rnn = SimpleRecurrent(
+    name='hidden',
     dim=hidden_layer_dim,
     activation=Tanh(),
-    weights_init=initialization.IsotropicGaussian(0.01))
-rnn1.initialize()
-
-rnn2 = SimpleRecurrent(
-    name='hidden2',
-    dim=hidden_layer_dim,
-    activation=Tanh(),
-    weights_init=initialization.IsotropicGaussian(0.01))
-rnn2.initialize()
-
-rnn3 = SimpleRecurrent(
-    name='hidden3',
-    dim=hidden_layer_dim,
-    activation=Tanh(),
-    weights_init=initialization.IsotropicGaussian(0.01))
-rnn3.initialize()
+    weights_init=initialization.Uniform(width=0.01))
+rnn.initialize()
 
 linear_output = Linear(
     name='linear_output',
     input_dim=hidden_layer_dim,
-    output_dim=dimension,
-    weights_init=initialization.IsotropicGaussian(0.01),
+    output_dim=vocab_size,
+    weights_init=initialization.Uniform(width=0.01),
     biases_init=Constant(0))
 linear_output.initialize()
 
 softmax = NDimensionalSoftmax(name='ndim_softmax')
 
 activation_input = lookup_input.apply(x)
-hidden1 = rnn1.apply(activation_input)
-hidden2 = rnn2.apply(hidden1)
-hidden3 = rnn3.apply(hidden2)
-activation_output = linear_output.apply(hidden3)
+hidden = rnn.apply(activation_input)
+activation_output = linear_output.apply(hidden)
 y_est = softmax.apply(activation_output, extra_ndim=1)
 
 cost = softmax.categorical_cross_entropy(y, activation_output, extra_ndim=1).mean()
@@ -119,7 +87,7 @@ from blocks.extensions.saveload import Checkpoint
 
 extensions = [
     Timing(),
-    FinishAfter(after_n_epochs=10000),
+    FinishAfter(after_n_epochs=500),
     TrainingDataMonitoring(
         variables=[cost],
         prefix="train",
@@ -127,7 +95,7 @@ extensions = [
     ),
     Printing(),
     ProgressBar(),
-    Checkpoint(path="./checkpoint.zip")
+    Checkpoint(path="./checkpoint.zip", every_n_batches=100)
 ]
 
 
@@ -137,7 +105,7 @@ main_loop = MainLoop(
     algorithm=algorithm,
     data_stream=DataStream.default_stream(
         dataset=train_dataset,
-        iteration_scheme=SequentialScheme(instances_num, batch_size=200)
+        iteration_scheme=SequentialScheme(train_dataset.num_examples, batch_size=1000)
     ),
     model=Model(y_est),
     extensions=extensions
