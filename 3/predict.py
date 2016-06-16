@@ -21,8 +21,8 @@ class MyDataset(H5PYDataset):
 
 
 with h5py.File(source_path) as f:
-    vocab = json.loads(f.attrs['index_to_char'])
-    vocab_size = len(vocab)
+    charset = json.loads(f.attrs['index_to_char'])
+    charset_size = len(charset)
     instances_num = f['x'].shape[0]
 
 
@@ -49,8 +49,8 @@ numpy.random.seed(int(time.time()))
 for i in range(500):
     input_char = numpy.zeros((1, 1), dtype=numpy.int32)
     input_char[0][0] = predictions[i]
-    predictions.append(numpy.random.choice(vocab_size, 1, p=predict_fun(input_char)[0])[0])
+    predictions.append(numpy.random.choice(charset_size, 1, p=predict_fun(input_char)[0])[0])
 
 
 print "Predict:"
-print "".join([vocab[x] for x in predictions])
+print "".join([charset[x] for x in predictions])

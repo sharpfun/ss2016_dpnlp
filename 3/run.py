@@ -18,7 +18,7 @@ source_path = 'dataset/shakespeare.hdf5'
 
 
 with h5py.File(source_path) as f:
-    vocab_size = len(json.loads(f.attrs['index_to_char']))
+    charset_size = len(json.loads(f.attrs['index_to_char']))
     instances_num = f['x'].shape[0]
 
 
@@ -40,7 +40,7 @@ y = tensor.lmatrix('y')
 
 lookup_input = LookupTable(
     name='lookup_input',
-    length=vocab_size,
+    length=charset_size,
     dim=hidden_layer_dim,
     weights_init=initialization.Uniform(width=0.01),
     biases_init=Constant(0))
@@ -64,7 +64,7 @@ rnn.initialize()
 linear_output = Linear(
     name='linear_output',
     input_dim=hidden_layer_dim,
-    output_dim=vocab_size,
+    output_dim=charset_size,
     weights_init=initialization.Uniform(width=0.01),
     biases_init=Constant(0))
 linear_output.initialize()
