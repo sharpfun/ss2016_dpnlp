@@ -6,9 +6,18 @@ from theano import function
 import numpy
 import h5py
 import json
+from fuel.datasets.hdf5 import H5PYDataset
 
 
 source_path = 'dataset/shakespeare.hdf5'
+
+
+class MyDataset(H5PYDataset):
+    def get_data(self, state=None, request=None):
+        data = list(super(MyDataset, self).get_data(state, request))
+        data[0] = data[0].T
+        data[1] = data[1].T
+        return tuple(data)
 
 
 with h5py.File(source_path) as f:

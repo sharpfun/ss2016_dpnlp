@@ -10,27 +10,27 @@ import json
 if __name__ == "__main__":
     corpus_path = 'dataset/shakespeare_input.txt'
     hdf5_out = 'dataset/shakespeare.hdf5'
-    seqlength = 200
+    seqlength = 50
 
     with open(corpus_path) as f:
-        corpus = f.read()
+        corpus = f.read()[:500001]
 
     (indices, indexed_letters) = pandas.factorize(list(corpus))
 
-    instances_num = len(corpus) // seqlength
+    instances_num = (len(corpus)-1) // seqlength
 
     f = h5py.File(hdf5_out, mode='w')
 
-    train_data_x = numpy.zeros((instances_num, seqlength), dtype=numpy.int8)
-    train_data_y = numpy.zeros((instances_num, seqlength), dtype=numpy.int8)
+    train_data_x = numpy.zeros((instances_num, seqlength), dtype=numpy.uint8)
+    train_data_y = numpy.zeros((instances_num, seqlength), dtype=numpy.uint8)
 
     for j in range(instances_num):
-        for i in range(seqlength - 1):
+        for i in range(seqlength):
             train_data_x[j][i] = indices[i + j * seqlength]
             train_data_y[j][i] = indices[i + j * seqlength + 1]
 
-    fx = f.create_dataset('x', train_data_x.shape, dtype='int8')
-    fy = f.create_dataset('y', train_data_y.shape, dtype='int8')
+    fx = f.create_dataset('x', train_data_x.shape, dtype='uint8')
+    fy = f.create_dataset('y', train_data_y.shape, dtype='uint8')
 
     fx[...] = train_data_x
     fy[...] = train_data_y

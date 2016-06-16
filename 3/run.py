@@ -11,6 +11,7 @@ from blocks.bricks import Linear, Softmax, NDimensionalSoftmax
 from fuel.datasets.hdf5 import H5PYDataset
 import h5py
 import json
+from blocks.algorithms import StepClipping, GradientDescent, CompositeRule, RMSProp
 
 
 source_path = 'dataset/shakespeare.hdf5'
@@ -21,10 +22,18 @@ with h5py.File(source_path) as f:
     instances_num = f['x'].shape[0]
 
 
-train_dataset = H5PYDataset(source_path, which_sets=('train',))
+class MyDataset(H5PYDataset):
+    def get_data(self, state=None, request=None):
+        data = list(super(MyDataset, self).get_data(state, request))
+        data[0] = data[0].T
+        data[1] = data[1].T
+        return tuple(data)
 
 
-hidden_layer_dim = 300
+train_dataset = MyDataset(source_path, which_sets=('train',))
+
+
+hidden_layer_dim = 500
 
 x = tensor.lmatrix('x')
 y = tensor.lmatrix('y')
@@ -37,7 +46,15 @@ lookup_input = LookupTable(
     biases_init=Constant(0))
 lookup_input.initialize()
 
-rnn = SimpleRecurrent(
+linear_input = Linear(
+    name='linear_input',
+    input_dim=hidden_layer_dim,
+    output_dim=hidden_layer_dim*4,
+    weights_init=initialization.Uniform(width=0.01),
+    biases_init=Constant(0))
+linear_input.initialize()
+
+rnn = LSTM(
     name='hidden',
     dim=hidden_layer_dim,
     activation=Tanh(),
@@ -55,7 +72,7 @@ linear_output.initialize()
 softmax = NDimensionalSoftmax(name='ndim_softmax')
 
 activation_input = lookup_input.apply(x)
-hidden = rnn.apply(activation_input)
+hidden, cell = rnn.apply(linear_input.apply(activation_input))
 activation_output = linear_output.apply(hidden)
 y_est = softmax.apply(activation_output, extra_ndim=1)
 
@@ -67,11 +84,13 @@ from blocks.algorithms import GradientDescent, Adam
 
 cg = ComputationGraph([cost])
 
+step_rules = [RMSProp(learning_rate=0.002, decay_rate=0.95), StepClipping(1.0)]
+
 
 algorithm = GradientDescent(
     cost=cost,
     parameters=cg.parameters,
-    step_rule=Adam()
+    step_rule=CompositeRule(step_rules)
 )
 
 
@@ -89,12 +108,12 @@ main_loop = MainLoop(
     algorithm=algorithm,
     data_stream=DataStream.default_stream(
         dataset=train_dataset,
-        iteration_scheme=SequentialScheme(train_dataset.num_examples, batch_size=1000)
+        iteration_scheme=SequentialScheme(train_dataset.num_examples, batch_size=200)
     ),
     model=Model(y_est),
     extensions=[
         Timing(),
-        FinishAfter(after_n_epochs=500),
+        FinishAfter(after_n_epochs=600),
         TrainingDataMonitoring(
             variables=[cost],
             prefix="train",
