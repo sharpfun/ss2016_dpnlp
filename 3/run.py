@@ -49,12 +49,12 @@ lookup_input.initialize()
 linear_input = Linear(
     name='linear_input',
     input_dim=hidden_layer_dim,
-    output_dim=hidden_layer_dim*4,
+    output_dim=hidden_layer_dim,
     weights_init=initialization.Uniform(width=0.01),
     biases_init=Constant(0))
 linear_input.initialize()
 
-rnn = LSTM(
+rnn = SimpleRecurrent(
     name='hidden',
     dim=hidden_layer_dim,
     activation=Tanh(),
@@ -72,7 +72,7 @@ linear_output.initialize()
 softmax = NDimensionalSoftmax(name='ndim_softmax')
 
 activation_input = lookup_input.apply(x)
-hidden, cell = rnn.apply(linear_input.apply(activation_input))
+hidden = rnn.apply(linear_input.apply(activation_input))
 activation_output = linear_output.apply(hidden)
 y_est = softmax.apply(activation_output, extra_ndim=1)
 
@@ -113,7 +113,7 @@ main_loop = MainLoop(
     model=Model(y_est),
     extensions=[
         Timing(),
-        FinishAfter(after_n_epochs=600),
+        FinishAfter(after_n_epochs=300),
         TrainingDataMonitoring(
             variables=[cost],
             prefix="train",
