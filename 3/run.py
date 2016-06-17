@@ -14,7 +14,7 @@ import json
 from blocks.algorithms import StepClipping, GradientDescent, CompositeRule, RMSProp
 
 
-source_path = 'dataset/shakespeare.hdf5'
+source_path = 'dataset/abc.hdf5'
 
 
 with h5py.File(source_path) as f:
@@ -33,7 +33,7 @@ class MyDataset(H5PYDataset):
 train_dataset = MyDataset(source_path, which_sets=('train',))
 
 
-hidden_layer_dim = 500
+hidden_layer_dim = 1000
 
 x = tensor.lmatrix('x')
 y = tensor.lmatrix('y')
@@ -108,7 +108,7 @@ main_loop = MainLoop(
     algorithm=algorithm,
     data_stream=DataStream.default_stream(
         dataset=train_dataset,
-        iteration_scheme=SequentialScheme(train_dataset.num_examples, batch_size=200)
+        iteration_scheme=SequentialScheme(train_dataset.num_examples, batch_size=100)
     ),
     model=Model(y_est),
     extensions=[

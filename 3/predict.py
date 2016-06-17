@@ -9,7 +9,7 @@ import json
 from fuel.datasets.hdf5 import H5PYDataset
 
 
-source_path = 'dataset/shakespeare.hdf5'
+source_path = 'dataset/abc.hdf5'
 
 
 class MyDataset(H5PYDataset):
